@@ -68,6 +68,75 @@
       //
       //
       //
+      $(function() {
+        var inputTextBefore;
+        var pageNumber;
+        $('.search__btn').on('click',function() {
+          //取得するページ数を決定
+          var inputText = $('.search__text__input').val();
+          if(inputText === inputTextBefore) {
+            pageNumber++;
+          } else {
+            pageNumber = 1;
+          }
+          $.ajax({
+            url: 'https://app.rakuten.co.jp/services/api/BooksTotal/Search/20170404',
+            type: 'GET',
+            datatype: 'json',
+            data: {
+              applicationId: '1019399324990976605',
+              keyword: inputText,
+              booksGenreId: '001',
+              hits: '20',
+              page: pageNumber
+            },
+          })
+          .done(function(data) {
+            doneAjax(data);
+          })
+          .fail(function(jqXHR) {
+            failAjax(jqXHR);
+          });
+
+          function doneAjax(data) {
+            $('.message').remove();
+            //検索結果がないとき
+            if(inputText === inputTextBefore && data.pageCount === 0) {
+              $('.search').after('<div class="message">検索結果が見つかりませんでした。<br>別のキーワードで検索してください。</div>');
+            } else if(data.pageCount === 0) {
+              $('.lists__item').remove();
+              $('.search').after('<div class="message">検索結果が見つかりませんでした。<br>別のキーワードで検索してください。</div>');
+              //検索結果があるとき
+            } else if(inputText === inputTextBefore) {
+              $('.lists').prepend(addData(data));
+            } else {
+              $('.lists__item').remove();
+              $('.lists').append(addData(data));
+            }
+            inputTextBefore = inputText;
+          }
+          //本の情報入力
+          function addData(data) {
+            var addList = '';
+            $.each(data.Items, function(index, value) {
+               addList += "<li class='lists__item'><div class='lists__item__inner'><a href='" + value.Item.itemUrl + "' class='lists__item__link' target='_blank'><img src='" + value.Item.largeImageUrl + "' class='lists__item__img' alt='" + value.Item.title + "'><p class='lists__item__detail'>作品名：" + value.Item.title + "</p><p class='lists__item__detail'>作者　：" + value.Item.author + "</p><p class='lists__item__detail'>出版社：" + value.Item.publisherName + "</p></a></div></li>";
+            })
+            return addList;
+          }
+
+          function failAjax(jqXHR) {
+            if(jqXHR.status === 0) {
+              alert('エラーコード: ' + jqXHR.status + '\nアクセスポイント、またはサーバーに接続できていない可能性があります。');
+            } else if(jqXHR.status === 400) {
+              alert('エラーコード: ' + jqXHR.status + '\n要求の形式が正しくありません。');
+            } else if(jqXHR.status === 429) {
+              alert('エラーコード: ' + jqXHR.status + '\n検索ボタンは間隔をあけてから押してください.');
+            } else {
+              alert('予期せぬエラーが起きました。\nエラーコード: ' + jqXHR.status);
+            }
+          }
+        });
+      });
     </script>
   </body>
 </html>

@@ -42,6 +42,18 @@
       // </li>
       //
       // このテンプレートに取得してきた中身を入れて表示します。
+      $(function() {
+        $.ajax({
+          url: './data.json'
+        })
+        .done(function(data) {
+          var arrayList = '';
+          $.each(data.colorsArray, function (index, value) {
+            arrayList += '<li class="colorList__item"><p class="colorList__title" style="background-color:' + value.hexValue + ';">' + value.colorName + '</p></li>';
+          })
+          $('.colorList').append(arrayList);
+        });
+      });
     </script>
   </body>
 </html>
